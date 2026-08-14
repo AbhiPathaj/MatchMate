@@ -40,7 +40,15 @@ final class MatchesViewModel {
                 page: currentPage
             )
 
-            profiles.append(contentsOf: fetchedProfiles)
+            let existingIDs = Set(
+                profiles.map(\.id)
+            )
+            
+            let newProfiles = fetchedProfiles.filter {
+                !existingIDs.contains($0.id)
+            }
+            
+            profiles.append(contentsOf: newProfiles)
             currentPage += 1
 
         } catch {
