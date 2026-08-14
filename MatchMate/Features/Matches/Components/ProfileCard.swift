@@ -18,7 +18,7 @@ struct ProfileCard: View {
     var body: some View {
         VStack(spacing: 16) {
 
-            AsyncImage(
+            CachedAsyncImage(
                 url: profile.largeImageURL
             ) { phase in
                 switch phase {
@@ -62,6 +62,10 @@ struct ProfileCard: View {
                 Text(profile.email)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                
+                Text(profile.matchStatus.rawValue.capitalized)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
             }
             .frame(
                 maxWidth: .infinity,
