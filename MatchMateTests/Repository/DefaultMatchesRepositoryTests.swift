@@ -85,6 +85,39 @@ final class DefaultMatchesRepositoryTests: XCTestCase {
             localDataSource.savedProfiles.isEmpty
         )
     }
+    
+    func testFetchProfilesReturnsCachedProfilesWhenRemoteFails() async throws {
+        
+        let profile = makeProfile(
+            status: .accepted
+        )
+        
+        let remoteService = MockRandomUserService(
+            result: .failure(
+                NetworkError.httpError(statusCode: 500)
+            )
+        )
+        
+        let localDataSource = MockLocalDataSource()
+        localDataSource.cachedProfiles = [profile]
+        
+        let repository = DefaultMatchesRepository(
+            remoteService: remoteService,
+            localDataSource: localDataSource
+        )
+        
+        let profiles = try await repository.fetchProfiles(
+            page: 1
+        )
+        
+        XCTAssertEqual(profiles.count, 1)
+        XCTAssertEqual(profiles[0].id, profile.id)
+        XCTAssertEqual(
+            profiles[0].matchStatus,
+            .accepted
+        )
+    }
+    
     func testFetchCachedProfilesReturnsLocalProfiles() async throws {
         
         let profile = makeProfile()
@@ -141,7 +174,8 @@ final class DefaultMatchesRepositoryTests: XCTestCase {
 private extension DefaultMatchesRepositoryTests {
     
     func makeProfile(
-        id: String = "test-user-123"
+        id: String = "test-user-123",
+        status: MatchStatus = .pending
     ) -> Profile {
         
         Profile(
@@ -162,7 +196,7 @@ private extension DefaultMatchesRepositoryTests {
             mediumImageURL: URL(
                 string: "https://example.com/medium.jpg"
             ),
-            matchStatus: .pending
+            matchStatus: status
         )
     }
 }

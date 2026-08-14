@@ -32,9 +32,7 @@ final class CoreDataLocalDataSource: LocalDataSource {
         for profile in profiles {
             
             let request = ProfileEntity.fetchRequest()
-            
             request.fetchLimit = 1
-            
             request.predicate = NSPredicate(
                 format: "id == %@",
                 profile.id
@@ -42,17 +40,21 @@ final class CoreDataLocalDataSource: LocalDataSource {
             
             if let existingEntity = try context.fetch(request).first {
                 
-                let currentStatus = existingEntity.matchStatus
-                
-                existingEntity.update(from: profile)
-                
-                existingEntity.matchStatus = currentStatus
+                // API refreshes server data,
+                // but preserve locally stored match status.
+                existingEntity.update(
+                    from: profile,
+                    updateStatus: false
+                )
                 
             } else {
                 
+                // New profile gets the API/default status.
                 let entity = ProfileEntity(context: context)
                 
-                entity.update(from: profile)
+                entity.update(
+                    from: profile
+                )
             }
         }
         

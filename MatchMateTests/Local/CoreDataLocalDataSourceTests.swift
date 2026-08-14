@@ -86,15 +86,18 @@ final class CoreDataLocalDataSourceTests: XCTestCase {
             status: .pending
         )
         
-        try await dataSource.saveProfiles([profile])
+        // Initial API save
+        try await dataSource.saveProfiles([
+            profile
+        ])
         
-        // User accepts the profile.
+        // User accepts the profile locally
         try await dataSource.updateStatus(
             profileID: profile.id,
             status: .accepted
         )
         
-        // API refreshes the same profile and says pending.
+        // API refresh returns the same profile as pending
         let refreshedProfile = makeProfile(
             status: .pending
         )
@@ -103,12 +106,46 @@ final class CoreDataLocalDataSourceTests: XCTestCase {
             refreshedProfile
         ])
         
-        // Fetch AFTER all mutations.
+        // Local decision must survive the API refresh
         let profiles = try await dataSource.fetchProfiles()
         
         XCTAssertEqual(profiles.count, 1)
         XCTAssertEqual(profiles[0].id, profile.id)
-        XCTAssertEqual(profiles[0].matchStatus, .accepted)
+        XCTAssertEqual(
+            profiles[0].matchStatus,
+            .accepted
+        )
+    }
+    
+    func testSavingExistingProfileDoesNotOverwriteLocalDeclinedStatus() async throws {
+        
+        let profile = makeProfile(
+            status: .pending
+        )
+        
+        try await dataSource.saveProfiles([
+            profile
+        ])
+        
+        try await dataSource.updateStatus(
+            profileID: profile.id,
+            status: .declined
+        )
+        
+        let refreshedProfile = makeProfile(
+            status: .pending
+        )
+        
+        try await dataSource.saveProfiles([
+            refreshedProfile
+        ])
+        
+        let profiles = try await dataSource.fetchProfiles()
+        
+        XCTAssertEqual(
+            profiles[0].matchStatus,
+            .declined
+        )
     }
     
     func testUpdateStatusThrowsWhenProfileDoesNotExist() async {
