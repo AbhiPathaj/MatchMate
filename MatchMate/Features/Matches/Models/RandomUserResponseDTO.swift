@@ -10,16 +10,4 @@ nonisolated struct RandomUserResponseDTO: Decodable {
     let results: [RandomUserProfileDTO]
     let info: RandomUserInfoDTO
 }
-/*
-name
-├── title
-├── first
-└── last
 
-picture
-├── large
-└── medium
-
-login
-└── uuid
-*/
