@@ -4,10 +4,8 @@
 //
 //  Created by Abhishek Pathak on 15/08/26.
 //
-
 import SwiftUI
 import UIKit
-import SwiftUI
 
 struct CachedAsyncImage<Content: View>: View {
     
@@ -40,43 +38,37 @@ struct CachedAsyncImage<Content: View>: View {
             return
         }
         
-        let cacheKey = url.absoluteString
-            .data(using: .utf8)!
-            .base64EncodedString()
-        
-        let fileURL = FileManager.default
-            .urls(
-                for: .cachesDirectory,
-                in: .userDomainMask
-            )[0]
-            .appendingPathComponent(cacheKey)
-        
-        // 1. Try disk cache first
-        if let data = try? Data(contentsOf: fileURL),
-           let uiImage = UIImage(data: data) {
+        // First check our shared disk cache.
+        if let data = await ImageCache.shared.imageData(
+            for: url
+        ),
+           let image = UIImage(data: data) {
             
             phase = .success(
-                Image(uiImage: uiImage)
+                Image(uiImage: image)
             )
             
             return
         }
         
-        // 2. No cache → download
+        // Nothing cached → download.
         do {
             let (data, _) = try await URLSession.shared.data(
                 from: url
             )
             
-            guard let uiImage = UIImage(data: data) else {
+            guard let image = UIImage(data: data) else {
                 throw URLError(.cannotDecodeContentData)
             }
             
-            // 3. Save image for offline usage
-            try? data.write(to: fileURL)
+            // Save through the single cache implementation.
+            await ImageCache.shared.save(
+                data,
+                for: url
+            )
             
             phase = .success(
-                Image(uiImage: uiImage)
+                Image(uiImage: image)
             )
             
         } catch {
