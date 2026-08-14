@@ -57,23 +57,44 @@ struct MatchesView: View {
 
                     ForEach(viewModel.profiles) { profile in
 
-                        ProfileCard(
-                            profile: profile,
-                            onAccept: {
-                                Task {
-                                    await viewModel.accept(
-                                        profileID: profile.id
-                                    )
+                        NavigationLink {
+                            ProfileDetailView(
+                                profile: profile,
+                                onAccept: {
+                                    Task {
+                                        await viewModel.accept(
+                                            profileID: profile.id
+                                        )
+                                    }
+                                },
+                                onDecline: {
+                                    Task {
+                                        await viewModel.decline(
+                                            profileID: profile.id
+                                        )
+                                    }
                                 }
-                            },
-                            onDecline: {
-                                Task {
-                                    await viewModel.decline(
-                                        profileID: profile.id
-                                    )
+                            )
+                        } label: {
+                            ProfileCard(
+                                profile: profile,
+                                onAccept: {
+                                    Task {
+                                        await viewModel.accept(
+                                            profileID: profile.id
+                                        )
+                                    }
+                                },
+                                onDecline: {
+                                    Task {
+                                        await viewModel.decline(
+                                            profileID: profile.id
+                                        )
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
+                        .buttonStyle(.plain)
                     }
 
                     if viewModel.isLoading {
