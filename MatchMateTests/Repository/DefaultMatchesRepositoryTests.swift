@@ -143,29 +143,40 @@ final class DefaultMatchesRepositoryTests: XCTestCase {
     
     func testUpdateStatusDelegatesToLocalDataSource() async throws {
         
-        let remoteService = MockRandomUserService(
-            result: .success([])
-        )
-        
         let localDataSource = MockLocalDataSource()
         
+        let profile = makeProfile(
+            id: "profile-1"
+        )
+        
+        localDataSource.cachedProfiles = [
+            profile
+        ]
+        
         let repository = DefaultMatchesRepository(
-            remoteService: remoteService,
+            remoteService: MockRandomUserService(
+                result: .success([])
+            ),
             localDataSource: localDataSource
         )
         
         try await repository.updateStatus(
-            profileID: "test-user-123",
+            profileID: "profile-1",
             status: .accepted
         )
         
         XCTAssertEqual(
             localDataSource.updatedProfileID,
-            "test-user-123"
+            "profile-1"
         )
         
         XCTAssertEqual(
             localDataSource.updatedStatus,
+            .accepted
+        )
+        
+        XCTAssertEqual(
+            localDataSource.cachedProfiles.first?.matchStatus,
             .accepted
         )
     }
