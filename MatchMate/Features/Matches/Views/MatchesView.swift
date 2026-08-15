@@ -5,17 +5,16 @@
 //  Created by Abhishek Pathak on 14/08/26.
 //
 
-
 import SwiftUI
 
 struct MatchesView: View {
-
+    
     @State private var viewModel: MatchesViewModel
-
+    
     init(viewModel: MatchesViewModel) {
         _viewModel = State(initialValue: viewModel)
     }
-
+    
     var body: some View {
         NavigationStack {
             content
@@ -25,38 +24,44 @@ struct MatchesView: View {
                 }
         }
     }
-
+    
     @ViewBuilder
     private var content: some View {
-
+        
         if viewModel.isLoading && viewModel.profiles.isEmpty {
+            
             ProgressView("Loading matches...")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+                .frame(
+                    maxWidth: .infinity,
+                    maxHeight: .infinity
+                )
+            
         } else if let error = viewModel.error,
                   viewModel.profiles.isEmpty {
-
+            
             ContentUnavailableView(
                 "Unable to Load Matches",
                 systemImage: "wifi.exclamationmark",
                 description: Text(error.localizedDescription)
             )
-
+            
         } else if viewModel.profiles.isEmpty {
-
+            
             ContentUnavailableView(
                 "No Matches",
                 systemImage: "person.2",
-                description: Text("No profiles are available right now.")
+                description: Text(
+                    "No profiles are available right now."
+                )
             )
-
+            
         } else {
-
+            
             ScrollView {
                 LazyVStack(spacing: 20) {
-
+                    
                     ForEach(viewModel.profiles) { profile in
-
+                        
                         NavigationLink {
                             ProfileDetailView(
                                 profile: profile,
@@ -95,8 +100,15 @@ struct MatchesView: View {
                             )
                         }
                         .buttonStyle(.plain)
+                        .onAppear {
+                            if profile.id == viewModel.profiles.last?.id {
+                                Task {
+                                    await viewModel.fetchProfiles()
+                                }
+                            }
+                        }
                     }
-
+                    
                     if viewModel.isLoading {
                         ProgressView()
                             .padding()

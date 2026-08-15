@@ -35,7 +35,6 @@ nonisolated final class DefaultRandomUserService: RandomUserService {
             RandomUserResponseDTO.self,
             from: data
         )
-        
         return response.results.map(Profile.init(dto:))
     }
 }

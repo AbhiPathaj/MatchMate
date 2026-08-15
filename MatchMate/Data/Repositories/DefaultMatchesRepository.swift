@@ -33,8 +33,8 @@ nonisolated final class DefaultMatchesRepository: MatchesRepository {
                 profiles
             )
             
-            // Important: return the persisted version,
-            // because Core Data owns local matchStatus.
+            // Return the persisted version so local match status
+            // is preserved after a remote refresh.
             return try await localDataSource.fetchProfiles()
             
         } catch {

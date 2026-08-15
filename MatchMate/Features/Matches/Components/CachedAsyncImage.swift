@@ -43,7 +43,6 @@ struct CachedAsyncImage<Content: View>: View {
             for: url
         ),
            let image = UIImage(data: data) {
-            
             phase = .success(
                 Image(uiImage: image)
             )
